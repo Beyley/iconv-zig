@@ -2,12 +2,15 @@ const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
-
     const optimize = b.standardOptimizeOption(.{});
 
+    b.installArtifact(createIconv(b, target, optimize));
+}
+
+pub fn createIconv(b: *std.Build, target: std.zig.CrossTarget, optimize: std.builtin.OptimizeMode) *std.Build.CompileStep {
     const lib = b.addStaticLibrary(.{
         .name = "iconv-zig",
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = .{ .path = root_path ++ "src/main.zig" },
         .target = target,
         .optimize = optimize,
     });
@@ -18,11 +21,9 @@ pub fn build(b: *std.Build) void {
     if (target.getOsTag() == .windows) {
         lib.addIncludePath(root_path ++ "win-iconv/");
         lib.addCSourceFiles(&.{root_path ++ "win-iconv/win_iconv.c"}, &.{});
-    } else {
-        lib.linkSystemLibrary("iconv");
     }
 
-    b.installArtifact(lib);
+    return lib;
 }
 
 fn root() []const u8 {
